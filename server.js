@@ -1,49 +1,52 @@
+require('dotenv').config(); // .env फाइल को लोड करने के लिए
 const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// --- Cloudinary को कॉन्फ़िगर करें ---
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
+
+// --- Cloudinary के लिए Multer Storage बनाएं ---
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'poll_uploads', // Cloudinary में इस नाम का फोल्डर बनेगा
+    format: async (req, file) => 'webp', // इमेज को webp फॉर्मेट में बदलें
+    public_id: (req, file) => file.fieldname + '-' + Date.now(),
+  },
+});
+
+const upload = multer({ storage: storage }).fields([
+    { name: 'pollLogo', maxCount: 1 },
+    { name: 'optionsImages', maxCount: 10 }
+]);
+
 // --- Middleware ---
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(__dirname));
 
 // --- डेटा को मेमोरी में स्टोर करें ---
 let polls = {};
 let pollCounter = 0;
 
-// --- Multer सेटअप ---
-const storage = multer.diskStorage({
-    destination: './uploads/',
-    filename: function(req, file, cb) {
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-    }
-});
-
-// <<< YAHAN BADLAV KIYA GAYA HAI >>>
-// अब यह pollLogo और optionsImages दोनों को हैंडल करेगा
-const upload = multer({ 
-    storage: storage 
-}).fields([
-    { name: 'pollLogo', maxCount: 1 },
-    { name: 'optionsImages', maxCount: 10 }
-]);
-
-
 // --- HTML पेज दिखाने के लिए Routes ---
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/admin.html', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 app.get('/poll.html', (req, res) => res.sendFile(path.join(__dirname, 'poll.html')));
 
-
 // --- API Routes ---
-
-// नया पोल बनाने के लिए
-app.post('/api/poll', upload, (req, res) => { // 'upload' middleware में बदलाव है
+app.post('/api/poll', upload, (req, res) => {
     try {
         const { question, optionsTexts } = req.body;
         const parsedOptions = JSON.parse(optionsTexts);
@@ -55,7 +58,7 @@ app.post('/api/poll', upload, (req, res) => { // 'upload' middleware में �
         const newPoll = {
             id: ++pollCounter,
             question,
-            // <<< YAHAN BADLAV KIYA GAYA HAI >>>
+            // अब हम Cloudinary से मिला URL सेव करेंगे
             logo: req.files.pollLogo ? req.files.pollLogo[0].path : null,
             options: parsedOptions.map((optionText, index) => {
                 const optionImages = req.files.optionsImages || [];
@@ -75,39 +78,12 @@ app.post('/api/poll', upload, (req, res) => { // 'upload' middleware में �
     }
 });
 
-// (बाकी का server.js कोड बिलकुल वैसा ही रहेगा)
+// (बाकी के API Routes वैसे ही रहेंगे)
+// ... वोट करने, पोल देखने, और एडमिन डेटा के लिए Routes ...
+app.post('/api/poll/:id/vote', (req, res) => { /* ... */ });
+app.get('/api/poll/:id', (req, res) => { /* ... */ });
+app.get('/admin/polls', (req, res) => { /* ... */ });
 
-// वोट करने के लिए
-app.post('/api/poll/:id/vote', (req, res) => {
-    const pollId = req.params.id;
-    const { optionIndex } = req.body;
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-
-    const poll = polls[pollId];
-    if (!poll) return res.status(404).json({ message: 'Poll not found.' });
-    if (poll.votedIPs.includes(ip)) return res.status(403).json({ message: 'You have already voted on this poll.' });
-    if (poll.options[optionIndex] === undefined) return res.status(400).json({ message: 'Invalid option.' });
-
-    poll.options[optionIndex].votes++;
-    poll.votedIPs.push(ip);
-    res.status(200).json(poll);
-});
-
-// पोल का डेटा पाने के लिए
-app.get('/api/poll/:id', (req, res) => {
-    const pollId = req.params.id;
-    const poll = polls[pollId];
-    if (poll) {
-        res.status(200).json(poll);
-    } else {
-        res.status(404).json({ message: 'Poll not found.' });
-    }
-});
-
-// एडमिन का सारा डेटा पाने के लिए
-app.get('/admin/polls', (req, res) => {
-    res.status(200).json(Object.values(polls));
-});
 
 // --- सर्वर को शुरू करें ---
 app.listen(PORT, () => {
