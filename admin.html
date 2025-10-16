@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
     <title>Admin Panel - All Polls</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -14,36 +14,107 @@
     <div class="max-w-4xl mx-auto">
         <div class="flex items-center justify-between mb-8">
             <h1 class="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-            <a href="/" class="text-blue-600 font-semibold hover:underline">Create New Poll</a>
+            <a href="/" class="text-blue-600 font-semibold hover:underline flex items-center space-x-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" /></svg>
+                <span>Create New Poll</span>
+            </a>
         </div>
         
-        <div id="polls-list" class="space-y-6">
+        <div id="polls-list" class="space-y-8">
             </div>
     </div>
+
     <script>
         const API_URL = '';
+
         async function fetchPolls() {
             try {
                 const response = await fetch(`${API_URL}/admin/polls`);
                 if (!response.ok) throw new Error('Could not fetch polls.');
-                const polls = await response.json();
+                const polls = await response.json().then(data => data.reverse()); // सबसे नया पोल सबसे ऊपर दिखाएं
+                
                 const container = document.getElementById('polls-list');
                 container.innerHTML = '';
+
                 if (polls.length === 0) {
                     container.innerHTML = '<div class="bg-white text-center p-12 rounded-lg shadow-md text-gray-600"><h3 class="text-xl font-semibold mb-2">No polls found</h3><p>Go to the main page to create your first poll!</p></div>';
                     return;
                 }
+
                 polls.forEach(poll => {
                     const totalVotes = poll.options.reduce((sum, opt) => sum + opt.votes, 0);
                     const pollEl = document.createElement('div');
-                    pollEl.className = 'bg-white p-6 rounded-lg shadow-md transition hover:shadow-lg hover:ring-1 hover:ring-blue-400';
-                    pollEl.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><h2 class="text-xl font-bold text-gray-900">${poll.question}</h2><p class="text-sm text-gray-500 mt-1">Poll ID: ${poll.id}</p></div><span class="text-sm font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full whitespace-nowrap">Total Votes: ${totalVotes}</span></div><ul class="mt-4 space-y-3 border-t pt-4">${poll.options.map(opt => `<li class="flex justify-between items-center text-gray-700"><span>${opt.text}</span><span class="font-semibold bg-gray-100 px-2 py-0.5 rounded">${opt.votes} votes</span></li>`).join('')}</ul>`;
+                    pollEl.className = 'bg-white p-6 rounded-xl shadow-lg transition hover:shadow-xl hover:ring-2 hover:ring-blue-400';
+
+                    // 1. पोल का लोगो दिखाएं (अगर मौजूद है)
+                    const logoHtml = poll.logo 
+                        ? `<div class="mb-4"><img src="${API_URL}/${poll.logo.replace(/\\/g, '/')}" alt="Poll Logo" class="max-h-40 w-full object-contain rounded-lg"></div>` 
+                        : '';
+
+                    // 2. ऑप्शन और उनकी फोटो दिखाएं
+                    const optionsHtml = poll.options.map(opt => {
+                        const optionImageHtml = opt.image 
+                            ? `<img src="${API_URL}/${opt.image.replace(/\\/g, '/')}" alt="${opt.text}" class="w-10 h-10 object-cover rounded-md mr-4">`
+                            : `<div class="w-10 h-10 flex-shrink-0 bg-gray-100 rounded-md mr-4"></div>`;
+                        
+                        return `<li class="flex justify-between items-center text-gray-800 py-2">
+                                    <div class="flex items-center">
+                                        ${optionImageHtml}
+                                        <span>${opt.text}</span>
+                                    </div>
+                                    <span class="font-semibold bg-gray-100 px-2 py-0.5 rounded">${opt.votes} votes</span>
+                                </li>`;
+                    }).join('');
+
+                    // 3. शेयर करने वाला लिंक बनाएं
+                    const shareLink = `${window.location.origin}/poll.html?id=${poll.id}`;
+
+                    pollEl.innerHTML = `
+                        ${logoHtml}
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h2 class="text-2xl font-bold text-gray-900">${poll.question}</h2>
+                                <p class="text-sm text-gray-500 mt-1">Poll ID: ${poll.id}</p>
+                            </div>
+                            <span class="text-sm font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full whitespace-nowrap">Total Votes: ${totalVotes}</span>
+                        </div>
+                        <ul class="mt-4 space-y-2 border-t pt-4">${optionsHtml}</ul>
+                        <div class="mt-4 pt-4 border-t">
+                            <label class="text-sm font-semibold text-gray-600 mb-2 block">Share Link</label>
+                            <div class="flex space-x-2">
+                                <input type="text" id="poll-link-${poll.id}" value="${shareLink}" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm" readonly>
+                                <button onclick="copyPollLink(${poll.id}, this)" class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap">Copy</button>
+                            </div>
+                        </div>
+                    `;
                     container.appendChild(pollEl);
                 });
             } catch (error) {
                 document.getElementById('polls-list').innerHTML = `<p class="bg-red-100 text-red-700 p-4 rounded-lg">Error loading polls: ${error.message}</p>`;
             }
         }
+
+        // लिंक कॉपी करने के लिए नया फंक्शन
+        function copyPollLink(pollId, buttonElement) {
+            const linkInput = document.getElementById(`poll-link-${pollId}`);
+            navigator.clipboard.writeText(linkInput.value).then(() => {
+                // कॉपी होने पर बटन का टेक्स्ट बदलें
+                buttonElement.textContent = 'Copied!';
+                buttonElement.classList.add('bg-green-500', 'hover:bg-green-600');
+                buttonElement.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                // 2 सेकंड बाद वापस "Copy" करें
+                setTimeout(() => {
+                    buttonElement.textContent = 'Copy';
+                    buttonElement.classList.remove('bg-green-500', 'hover:bg-green-600');
+                    buttonElement.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                alert('Failed to copy link.');
+            });
+        }
+
+        // पेज लोड होते ही पोल्स को लोड करें
         fetchPolls();
     </script>
 </body>
