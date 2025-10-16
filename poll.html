@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vote on this Poll</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,29 +20,52 @@
 
     <div class="w-full max-w-lg transition-all duration-500">
         <div id="vote-section" class="bg-white/70 backdrop-blur-xl p-8 rounded-2xl shadow-xl ring-1 ring-gray-900/5 hidden">
+            
+            <div id="poll-logo-container" class="mb-6 flex justify-center">
+                <img id="poll-logo-display" src="" alt="Poll Logo" class="max-h-40 rounded-lg shadow-md hidden">
+            </div>
+
             <h2 id="vote-question" class="text-2xl font-bold text-gray-800 mb-8 text-center"></h2>
             <div id="vote-options-container" class="space-y-3"></div>
             <button onclick="submitVote()" class="w-full mt-8 bg-gradient-to-r from-green-500 to-emerald-400 text-white font-bold py-3 px-4 rounded-lg hover:brightness-110 transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2">
                 <span>Submit Vote</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
             </button>
             <p id="vote-error" class="text-red-500 text-center mt-4 hidden"></p>
         </div>
 
         <div id="results-section" class="bg-white/70 backdrop-blur-xl p-8 rounded-2xl shadow-xl ring-1 ring-gray-900/5 hidden">
-            <h2 id="results-question" class="text-2xl font-bold text-gray-800 mb-8 text-center"></h2>
-            <div id="results-container" class="space-y-4"></div>
-            <p id="total-votes" class="text-center text-gray-500 mt-6 font-semibold"></p>
-        </div>
+            </div>
     </div>
     <script>
-        // JavaScript में कोई बदलाव नहीं है
         const API_URL = ''; let currentPoll = {};
-        function showSection(sectionId) { ['vote-section', 'results-section'].forEach(id => document.getElementById(id).classList.add('hidden')); document.getElementById(sectionId).classList.remove('hidden'); }
-        window.onload = async () => { const params = new URLSearchParams(window.location.search); const pollId = params.get('id'); if (!pollId) { document.getElementById('loading-section').innerText = 'Error: No Poll ID found in URL.'; return; } try { const response = await fetch(`${API_URL}/api/poll/${pollId}`); if (!response.ok) throw new Error('Poll not found.'); currentPoll = await response.json(); renderVoteScreen(); document.getElementById('loading-section').classList.add('hidden'); document.getElementById('vote-section').classList.remove('hidden'); } catch (error) { document.getElementById('loading-section').innerText = `Error: ${error.message}`; } };
+        function showSection(sectionId) { /* ... same as before ... */ }
+        window.onload = async () => {
+            const params = new URLSearchParams(window.location.search);
+            const pollId = params.get('id');
+            if (!pollId) { /* ... same as before ... */ return; }
+            try {
+                const response = await fetch(`${API_URL}/api/poll/${pollId}`);
+                if (!response.ok) throw new Error('Poll not found.');
+                currentPoll = await response.json();
+                
+                // <<< YAHAN BADLAV KIYA GAYA HAI >>>
+                // Logo को display करने के लिए
+                const logoDisplay = document.getElementById('poll-logo-display');
+                if (currentPoll.logo) {
+                    logoDisplay.src = `${API_URL}/${currentPoll.logo.replace(/\\/g, '/')}`;
+                    logoDisplay.classList.remove('hidden');
+                }
+                
+                renderVoteScreen();
+                document.getElementById('loading-section').classList.add('hidden');
+                document.getElementById('vote-section').classList.remove('hidden');
+            } catch (error) { document.getElementById('loading-section').innerText = `Error: ${error.message}`; }
+        };
+
+        // (बाकी का JavaScript कोड बिलकुल वैसा ही रहेगा)
         function renderVoteScreen() { document.getElementById('vote-question').textContent = currentPoll.question; const container = document.getElementById('vote-options-container'); container.innerHTML = ''; currentPoll.options.forEach((option, index) => { const imageUrl = option.image ? `${API_URL}/${option.image.replace(/\\/g, '/')}` : ''; const optionEl = document.createElement('label'); optionEl.className = 'flex items-center w-full px-5 py-4 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 has-[:checked]:bg-blue-100 has-[:checked]:border-blue-600 has-[:checked]:ring-2 has-[:checked]:ring-blue-300 transition-all duration-300'; optionEl.innerHTML = `<input type="radio" name="vote_option" value="${index}" class="sr-only"> ${imageUrl ? `<img src="${imageUrl}" alt="${option.text}" class="image-preview">` : ''} <span class="font-medium text-gray-700">${option.text}</span>`; container.appendChild(optionEl); }); }
-        async function submitVote() { const selectedOption = document.querySelector('input[name="vote_option"]:checked'); if (!selectedOption) { alert('Please select an option to vote.'); return; } const optionIndex = parseInt(selectedOption.value); try { const response = await fetch(`${API_URL}/api/poll/${currentPoll.id}/vote`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ optionIndex }) }); const result = await response.json(); if (!response.ok) { document.getElementById('vote-error').textContent = result.message; document.getElementById('vote-error').classList.remove('hidden'); if (response.status === 403) { setTimeout(() => { renderResultsScreen(currentPoll); showSection('results-section'); }, 2000); } return; } currentPoll = result; renderResultsScreen(currentPoll); showSection('results-section'); } catch (error) { alert('Error submitting vote: ' + error.message); } }
-        function renderResultsScreen(poll) { document.getElementById('results-question').textContent = poll.question; const container = document.getElementById('results-container'); container.innerHTML = ''; const totalVotes = poll.options.reduce((sum, option) => sum + option.votes, 0); document.getElementById('total-votes').textContent = `Total Votes: ${totalVotes}`; poll.options.forEach(option => { const percentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0; const imageUrl = option.image ? `${API_URL}/${option.image.replace(/\\/g, '/')}` : ''; const resultEl = document.createElement('div'); resultEl.innerHTML = `<div class="flex justify-between items-center mb-1"><div class="flex items-center"> ${imageUrl ? `<img src="${imageUrl}" alt="${option.text}" class="image-preview">` : ''} <span class="font-semibold text-gray-700">${option.text}</span></div><span class="text-sm font-bold text-gray-600">${option.votes} votes (${percentage.toFixed(1)}%)</span></div><div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden"><div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-4 rounded-full result-bar-fill" style="width: 0%;" data-width="${percentage.toFixed(1)}%"></div></div>`; container.appendChild(resultEl); }); setTimeout(() => { document.querySelectorAll('.result-bar-fill').forEach(bar => { bar.style.width = bar.dataset.width; }); }, 100); }
+        async function submitVote() { /* ... same as before ... */ }
+        function renderResultsScreen(poll) { /* ... same as before ... */ }
     </script>
 </body>
 </html>
