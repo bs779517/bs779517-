@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(express.static(__dirname)); // HTML/CSS/JS फाइलों को पब्लिक बनाएं
+app.use(express.static(__dirname));
 
 // --- डेटा को मेमोरी में स्टोर करें ---
 let polls = {};
@@ -23,21 +23,27 @@ const storage = multer.diskStorage({
         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
     }
 });
-const upload = multer({ storage: storage });
 
-// --- HTML पेज दिखाने के लिए स्पष्ट Routes ---
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-app.get('/admin.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
-});
-app.get('/poll.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'poll.html'));
-});
+// <<< YAHAN BADLAV KIYA GAYA HAI >>>
+// अब यह pollLogo और optionsImages दोनों को हैंडल करेगा
+const upload = multer({ 
+    storage: storage 
+}).fields([
+    { name: 'pollLogo', maxCount: 1 },
+    { name: 'optionsImages', maxCount: 10 }
+]);
+
+
+// --- HTML पेज दिखाने के लिए Routes ---
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/admin.html', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
+app.get('/poll.html', (req, res) => res.sendFile(path.join(__dirname, 'poll.html')));
+
 
 // --- API Routes ---
-app.post('/api/poll', upload.array('optionsImages', 10), (req, res) => {
+
+// नया पोल बनाने के लिए
+app.post('/api/poll', upload, (req, res) => { // 'upload' middleware में बदलाव है
     try {
         const { question, optionsTexts } = req.body;
         const parsedOptions = JSON.parse(optionsTexts);
@@ -49,11 +55,16 @@ app.post('/api/poll', upload.array('optionsImages', 10), (req, res) => {
         const newPoll = {
             id: ++pollCounter,
             question,
-            options: parsedOptions.map((optionText, index) => ({
-                text: optionText,
-                image: req.files && req.files[index] ? req.files[index].path : null,
-                votes: 0
-            })),
+            // <<< YAHAN BADLAV KIYA GAYA HAI >>>
+            logo: req.files.pollLogo ? req.files.pollLogo[0].path : null,
+            options: parsedOptions.map((optionText, index) => {
+                const optionImages = req.files.optionsImages || [];
+                return {
+                    text: optionText,
+                    image: optionImages[index] ? optionImages[index].path : null,
+                    votes: 0
+                };
+            }),
             votedIPs: []
         };
         polls[newPoll.id] = newPoll;
@@ -64,6 +75,9 @@ app.post('/api/poll', upload.array('optionsImages', 10), (req, res) => {
     }
 });
 
+// (बाकी का server.js कोड बिलकुल वैसा ही रहेगा)
+
+// वोट करने के लिए
 app.post('/api/poll/:id/vote', (req, res) => {
     const pollId = req.params.id;
     const { optionIndex } = req.body;
@@ -79,6 +93,7 @@ app.post('/api/poll/:id/vote', (req, res) => {
     res.status(200).json(poll);
 });
 
+// पोल का डेटा पाने के लिए
 app.get('/api/poll/:id', (req, res) => {
     const pollId = req.params.id;
     const poll = polls[pollId];
@@ -89,6 +104,7 @@ app.get('/api/poll/:id', (req, res) => {
     }
 });
 
+// एडमिन का सारा डेटा पाने के लिए
 app.get('/admin/polls', (req, res) => {
     res.status(200).json(Object.values(polls));
 });
