@@ -19,6 +19,12 @@
             
             <form id="create-poll-form">
                 <div class="space-y-4">
+
+                    <div>
+                        <label for="poll-logo" class="text-sm font-semibold text-gray-600 mb-2 block">Poll Logo (Optional)</label>
+                        <input type="file" name="pollLogo" id="poll-logo" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    </div>
+
                     <div>
                         <label for="poll-question" class="text-sm font-semibold text-gray-600 mb-2 block">Your Question</label>
                         <input type="text" id="poll-question" placeholder="e.g., Which superpower would you choose?" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300" required>
@@ -27,17 +33,7 @@
                     <div>
                         <label class="text-sm font-semibold text-gray-600 mb-2 block">Options</label>
                         <div id="options-container" class="space-y-3">
-                            <div class="flex items-center space-x-2">
-                                <input type="file" name="optionsImages" accept="image/*" class="w-28 file:mr-4 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors">
-                                <input type="text" name="optionsTexts" placeholder="Option 1" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white" required>
-                                <button type="button" onclick="removeOption(this)" class="p-2 text-gray-400 hover:text-red-500 transition-colors">&#10005;</button>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <input type="file" name="optionsImages" accept="image/*" class="w-28 file:mr-4 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors">
-                                <input type="text" name="optionsTexts" placeholder="Option 2" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white" required>
-                                <button type="button" onclick="removeOption(this)" class="p-2 text-gray-400 hover:text-red-500 transition-colors">&#10005;</button>
-                            </div>
-                        </div>
                     </div>
                     
                     <button type="button" onclick="addOption()" class="w-full text-blue-600 font-semibold py-3 px-4 rounded-lg border-2 border-dashed border-gray-300 hover:bg-blue-50 hover:border-blue-400 transition-all duration-300">+ Add Option</button>
@@ -49,23 +45,20 @@
                 </button>
             </form>
         </div>
-
         <div id="share-section" class="bg-white/70 backdrop-blur-xl p-8 rounded-2xl shadow-xl ring-1 ring-gray-900/5 hidden">
-            <h2 class="text-2xl font-bold text-green-600 text-center mb-4">Poll Created!</h2>
-            <p class="text-gray-600 text-center mb-6">Share this link with your friends:</p>
-            <input type="text" id="shareable-link" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-center text-sm" readonly>
-            <button onclick="copyLink()" class="w-full mt-4 bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700">Copy Link</button>
-            <button onclick="createNewPoll()" class="w-full mt-6 bg-gray-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-700">Create New Poll</button>
-        </div>
+            </div>
     </div>
     
     <script>
-        // JavaScript में कोई बदलाव नहीं है, इसलिए पुराना वाला ही काम करेगा
+        // JavaScript में कोई बदलाव नहीं है, बस FormData अपने आप नया फील्ड उठा लेगा।
+        // (पूरा JS कोड पिछले जवाब जैसा ही है)
         const API_URL = '';
         function showSection(sectionId) { ['create-section', 'share-section'].forEach(id => document.getElementById(id).classList.add('hidden')); document.getElementById(sectionId).classList.remove('hidden'); }
-        function addOption() { const container = document.getElementById('options-container'); const optionCount = container.children.length + 1; const newOption = document.createElement('div'); newOption.className = 'flex items-center space-x-2'; newOption.innerHTML = `<input type="file" name="optionsImages" accept="image/*" class="w-28 file:mr-4 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors"><input type="text" name="optionsTexts" placeholder="Option ${optionCount}" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white" required><button type="button" onclick="removeOption(this)" class="p-2 text-gray-400 hover:text-red-500 transition-colors">&#10005;</button>`; container.appendChild(newOption); }
+        function createOptionHTML(count) { return `<div class="flex items-center space-x-2"><input type="file" name="optionsImages" accept="image/*" class="w-28 file:mr-4 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors"><input type="text" name="optionsTexts" placeholder="Option ${count}" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white" required><button type="button" onclick="removeOption(this)" class="p-2 text-gray-400 hover:text-red-500 transition-colors">&#10005;</button></div>`; }
+        function addOption() { const container = document.getElementById('options-container'); const optionCount = container.children.length + 1; const newOption = document.createElement('div'); newOption.innerHTML = createOptionHTML(optionCount); container.appendChild(newOption.firstChild); }
         function removeOption(button) { if (document.getElementById('options-container').children.length > 2) { button.parentElement.remove(); } else { alert('You need at least two options.'); } }
-        document.getElementById('create-poll-form').addEventListener('submit', async function(e) { e.preventDefault(); const question = document.getElementById('poll-question').value.trim(); const optionsTexts = Array.from(document.querySelectorAll('input[name="optionsTexts"]')).map(input => input.value.trim()); const optionsImages = document.querySelectorAll('input[name="optionsImages"]'); const formData = new FormData(); formData.append('question', question); formData.append('optionsTexts', JSON.stringify(optionsTexts)); optionsImages.forEach(imageInput => { if (imageInput.files[0]) { formData.append('optionsImages', imageInput.files[0]); } }); try { const response = await fetch(`${API_URL}/api/poll`, { method: 'POST', body: formData }); if (!response.ok) throw new Error('Failed to create poll.'); const newPoll = await response.json(); showShareScreen(newPoll.id); } catch (error) { alert('Error: ' + error.message); } });
+        document.getElementById('options-container').innerHTML = createOptionHTML(1) + createOptionHTML(2);
+        document.getElementById('create-poll-form').addEventListener('submit', async function(e) { e.preventDefault(); const formData = new FormData(this); const optionsTexts = Array.from(document.querySelectorAll('input[name="optionsTexts"]')).map(input => input.value.trim()); formData.delete('optionsTexts'); formData.append('optionsTexts', JSON.stringify(optionsTexts)); formData.append('question', document.getElementById('poll-question').value.trim()); try { const response = await fetch(`${API_URL}/api/poll`, { method: 'POST', body: formData }); if (!response.ok) throw new Error('Failed to create poll.'); const newPoll = await response.json(); showShareScreen(newPoll.id); } catch (error) { alert('Error: ' + error.message); } });
         function showShareScreen(pollId) { const link = `${window.location.origin}/poll.html?id=${pollId}`; document.getElementById('shareable-link').value = link; showSection('share-section'); }
         function copyLink() { const linkInput = document.getElementById('shareable-link'); linkInput.select(); document.execCommand('copy'); alert('Link copied to clipboard!'); }
         function createNewPoll() { document.getElementById('create-poll-form').reset(); showSection('create-section'); }
