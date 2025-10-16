@@ -1,14 +1,11 @@
 {
-  "name": "poll-app",
+  "name": "poll-app-simple",
   "version": "1.0.0",
-  "description": "A simple poll creation web application with Node.js backend.",
+  "description": "A simple poll creation web application.",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.19.2",
