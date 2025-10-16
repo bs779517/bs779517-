@@ -10,8 +10,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-// यह Middleware बाकी सभी स्टैटिक फाइलों (जैसे CSS या client-side JS) के लिए ज़रूरी है
-app.use(express.static(__dirname)); 
+app.use(express.static(__dirname)); // HTML/CSS/JS फाइलों को पब्लिक बनाएं
 
 // --- डेटा को मेमोरी में स्टोर करें ---
 let polls = {};
@@ -27,26 +26,17 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // --- HTML पेज दिखाने के लिए स्पष्ट Routes ---
-
-// 1. मुख्य पेज (/) के लिए
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
-
-// 2. एडमिन पेज (/admin.html) के लिए <<< YEH NAYI LINE HAI
 app.get('/admin.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
-
-// 3. पोल पेज (/poll.html) के लिए <<< YEH BHI NAYI LINE HAI
 app.get('/poll.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'poll.html'));
 });
 
-
-// --- API Routes (इनमें कोई बदलाव नहीं) ---
-
-// नया पोल बनाने के लिए
+// --- API Routes ---
 app.post('/api/poll', upload.array('optionsImages', 10), (req, res) => {
     try {
         const { question, optionsTexts } = req.body;
@@ -74,7 +64,6 @@ app.post('/api/poll', upload.array('optionsImages', 10), (req, res) => {
     }
 });
 
-// वोट करने के लिए
 app.post('/api/poll/:id/vote', (req, res) => {
     const pollId = req.params.id;
     const { optionIndex } = req.body;
@@ -90,7 +79,6 @@ app.post('/api/poll/:id/vote', (req, res) => {
     res.status(200).json(poll);
 });
 
-// पोल का डेटा पाने के लिए
 app.get('/api/poll/:id', (req, res) => {
     const pollId = req.params.id;
     const poll = polls[pollId];
@@ -101,7 +89,6 @@ app.get('/api/poll/:id', (req, res) => {
     }
 });
 
-// एडमिन का सारा डेटा पाने के लिए
 app.get('/admin/polls', (req, res) => {
     res.status(200).json(Object.values(polls));
 });
