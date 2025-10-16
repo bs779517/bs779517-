@@ -4,30 +4,32 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Vercel के लिए पोर्ट को डायनामिक बनाएं
 
 // --- Middleware ---
-app.use(cors()); // Cross-Origin Resource Sharing को इनेबल करें
-app.use(express.json()); // JSON बॉडी को पार्स करने के लिए
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // 'uploads' फोल्डर को public बनाएं
+app.use(cors());
+app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static(__dirname)); // HTML/CSS/JS फाइलों को पब्लिक बनाएं
 
-// <<< YAHI HAI WOH ZAROORI LINE JO HTML FILE DIKHAYEGI >>>
-// यह लाइन index.html, poll.html, और admin.html जैसी फाइलों को पब्लिक बनाती है।
-app.use(express.static(__dirname));
-
-// --- डेटा को मेमोरी में स्टोर करें (वास्तविक ऐप के लिए डेटाबेस का उपयोग करें) ---
+// --- डेटा को मेमोरी में स्टोर करें ---
 let polls = {};
 let pollCounter = 0;
 
-// --- Multer सेटअप इमेज अपलोड के लिए ---
+// --- Multer सेटअप ---
 const storage = multer.diskStorage({
     destination: './uploads/',
     filename: function(req, file, cb) {
         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
     }
 });
-
 const upload = multer({ storage: storage });
+
+// <<< YAHI HAI NAYA CODE JO ERROR THEEK KAREGA >>>
+// यह सर्वर को बताता है कि मुख्य URL (/) पर index.html दिखाना है
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // --- API Routes ---
 
@@ -35,8 +37,6 @@ const upload = multer({ storage: storage });
 app.post('/api/poll', upload.array('optionsImages', 10), (req, res) => {
     try {
         const { question, optionsTexts } = req.body;
-        
-        // Front-end से stringified JSON को parse करें
         const parsedOptions = JSON.parse(optionsTexts);
 
         if (!question || !parsedOptions || parsedOptions.length < 2) {
@@ -48,19 +48,17 @@ app.post('/api/poll', upload.array('optionsImages', 10), (req, res) => {
             question,
             options: parsedOptions.map((optionText, index) => ({
                 text: optionText,
-                image: req.files[index] ? req.files[index].path : null,
+                image: req.files && req.files[index] ? req.files[index].path : null,
                 votes: 0
             })),
-            votedIPs: [] // इस पोल पर वोट कर चुके IP एड्रेस को स्टोर करने के लिए
+            votedIPs: []
         };
 
         polls[newPoll.id] = newPoll;
-        console.log('Poll Created:', newPoll);
         res.status(201).json(newPoll);
-
     } catch (error) {
         console.error('Error creating poll:', error);
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
@@ -68,7 +66,8 @@ app.post('/api/poll', upload.array('optionsImages', 10), (req, res) => {
 app.post('/api/poll/:id/vote', (req, res) => {
     const pollId = req.params.id;
     const { optionIndex } = req.body;
-    const ip = req.ip; // यूजर का IP एड्रेस प्राप्त करें
+    // Vercel पर IP के लिए 'x-forwarded-for' हेडर का उपयोग करें
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
     const poll = polls[pollId];
 
@@ -76,22 +75,20 @@ app.post('/api/poll/:id/vote', (req, res) => {
         return res.status(404).json({ message: 'Poll not found.' });
     }
 
-    // जांचें कि क्या इस IP से पहले ही वोट किया जा चुका है
     if (poll.votedIPs.includes(ip)) {
-        return res.status(403).json({ message: 'You have already voted on this poll from this IP.' });
+        return res.status(403).json({ message: 'You have already voted on this poll.' });
     }
 
     if (poll.options[optionIndex] !== undefined) {
         poll.options[optionIndex].votes++;
-        poll.votedIPs.push(ip); // IP को रिकॉर्ड करें
-        console.log('Vote Submitted for Poll ID:', pollId, 'by IP:', ip);
+        poll.votedIPs.push(ip);
         res.status(200).json(poll);
     } else {
         res.status(400).json({ message: 'Invalid option.' });
     }
 });
 
-// 3. पोल का डेटा (और रिजल्ट) प्राप्त करने के लिए
+// 3. पोल का डेटा प्राप्त करने के लिए
 app.get('/api/poll/:id', (req, res) => {
     const pollId = req.params.id;
     const poll = polls[pollId];
@@ -102,14 +99,12 @@ app.get('/api/poll/:id', (req, res) => {
     }
 });
 
-// एडमिन पैनल के लिए (सरल उदाहरण)
+// 4. एडमिन पैनल के लिए
 app.get('/admin/polls', (req, res) => {
-    // यहां आप पासवर्ड सुरक्षा जोड़ सकते हैं
     res.status(200).json(Object.values(polls));
 });
 
 // --- सर्वर को शुरू करें ---
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-    console.log('Now your website is available through your ngrok link!');
+    console.log(`Server is running on port ${PORT}`);
 });
