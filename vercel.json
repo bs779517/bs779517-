@@ -2,7 +2,7 @@
   "stores": [
     {
       "type": "kv",
-      "name": "myPollKVDatabase"
+      "name": "poll_results"
     }
   ]
 }
