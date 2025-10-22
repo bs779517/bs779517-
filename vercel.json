@@ -1,8 +1,0 @@
-{
-  "stores": [
-    {
-      "type": "kv",
-      "name": "poll_results"
-    }
-  ]
-}
