@@ -86,32 +86,12 @@
             line-height: 1.2;
         }
 
-        .hero span {
-            color: var(--primary-gold);
-        }
-
-        .hero h3 {
-            font-size: 1.2rem;
-            letter-spacing: 3px;
-            margin-bottom: 20px;
-            color: #ccc;
-        }
-
-        .online-badge {
-            background-color: var(--primary-gold);
-            color: black;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            display: inline-block;
-            font-size: 0.9rem;
-        }
+        .hero span { color: var(--primary-gold); }
+        .hero h3 { font-size: 1.2rem; letter-spacing: 3px; margin-bottom: 20px; color: #ccc; }
 
         .btn {
-            background-color: transparent;
-            border: 2px solid var(--primary-gold);
-            color: var(--primary-gold);
+            background-color: var(--primary-gold);
+            color: black;
             padding: 12px 30px;
             text-decoration: none;
             font-weight: bold;
@@ -121,17 +101,14 @@
             display: inline-block;
             margin-top: 10px;
             cursor: pointer;
+            border: none;
         }
-
-        .btn:hover {
-            background-color: var(--primary-gold);
-            color: black;
-        }
+        .btn:hover { background-color: white; transform: scale(1.05); }
 
         /* SECTIONS GENERAL */
         section {
             padding: 60px 20px;
-            max-width: 1200px;
+            max-width: 1100px;
             margin: auto;
         }
 
@@ -141,37 +118,37 @@
             margin-bottom: 40px;
             color: var(--primary-gold);
             text-transform: uppercase;
-            border-bottom: 2px solid #333;
             display: inline-block;
+            border-bottom: 2px solid #333;
             padding-bottom: 10px;
         }
-
         .center-heading { text-align: center; width: 100%; }
 
         /* ABOUT SECTION */
-        .about-container {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 40px;
-        }
+        .about-container { display: flex; flex-wrap: wrap; align-items: center; gap: 40px; }
         .about-img img { width: 100%; border-radius: 10px; border: 2px solid var(--primary-gold); }
         .about-img, .about-text { flex: 1; min-width: 300px; }
 
-        /* --- NEW ONLINE PLANS SECTION --- */
-        #online {
-            background-color: #151515;
-            padding-bottom: 80px;
+        /* WHY CHOOSE US (NEW) */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            text-align: center;
         }
-
-        .plans-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 30px;
+        .feature-item {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            transition: 0.3s;
         }
+        .feature-item:hover { transform: translateY(-5px); background: #222; }
+        .feature-icon { font-size: 2.5rem; margin-bottom: 10px; display: block; }
 
+        /* ONLINE PLANS SECTION */
+        #online { background-color: #151515; padding-bottom: 80px; }
+        .plans-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; margin-top: 30px; }
+        
         .plan-card {
             background-color: #000;
             border: 1px solid #333;
@@ -182,63 +159,37 @@
             position: relative;
             transition: 0.3s;
         }
-
-        /* Styling for the Premium Card */
         .plan-card.premium {
             border: 2px solid var(--primary-gold);
             box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
             transform: scale(1.02);
         }
-
-        .plan-card h3 {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-            color: white;
-        }
-
-        .plan-tagline {
-            font-size: 0.9rem;
-            color: #888;
-            margin-bottom: 20px;
-            font-style: italic;
-            border-bottom: 1px solid #333;
-            padding-bottom: 15px;
-        }
-
-        .features-list {
-            list-style: none;
-            margin-bottom: 30px;
-        }
-
-        .features-list li {
-            margin-bottom: 15px;
-            display: flex;
-            align-items: start;
-        }
-
-        .features-list li::before {
-            content: "✅";
-            margin-right: 10px;
-            font-size: 1rem;
-        }
-        
-        /* Different icon for limitations */
-        .features-list li.limit::before {
-            content: "⚠️";
-        }
-
         .reco-badge {
-            position: absolute;
-            top: -12px;
-            right: 20px;
-            background-color: var(--primary-gold);
-            color: black;
-            font-size: 0.8rem;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            text-transform: uppercase;
+            position: absolute; top: -12px; right: 20px;
+            background-color: var(--primary-gold); color: black;
+            font-size: 0.8rem; padding: 4px 10px; border-radius: 4px; font-weight: bold;
         }
+        .features-list { list-style: none; margin: 20px 0 30px 0; }
+        .features-list li { margin-bottom: 12px; display: flex; align-items: center; }
+        .features-list li::before { content: "✅"; margin-right: 10px; font-size: 0.9rem; }
+        .features-list li.limit::before { content: "⚠️"; }
+
+        /* REVIEWS / TESTIMONIALS (NEW) */
+        .reviews-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .review-card {
+            background: #1e1e1e;
+            padding: 25px;
+            border-radius: 10px;
+            width: 300px;
+            border-left: 4px solid var(--primary-gold);
+        }
+        .review-text { font-style: italic; color: #ccc; font-size: 0.95rem; }
+        .athlete-name { margin-top: 15px; font-weight: bold; color: var(--primary-gold); display: block; }
 
         /* CONTACT SECTION */
         .contact { text-align: center; background-color: #000; padding: 50px 20px; }
@@ -248,7 +199,7 @@
         @media (max-width: 768px) {
             .hero h1 { font-size: 2.2rem; }
             nav { display: none; }
-            .plan-card { width: 100%; }
+            .plan-card { width: 100%; transform: none !important; }
         }
     </style>
 </head>
@@ -259,15 +210,42 @@
         <nav>
             <a href="#about">About</a>
             <a href="#online" class="highlight">Online Plans</a>
+            <a href="#reviews">Reviews</a>
             <a href="#contact">Contact</a>
         </nav>
     </header>
 
     <section class="hero">
-        <div class="online-badge">🔴 ADMISSIONS OPEN 2025</div>
+        <div style="background: var(--primary-gold); color: black; padding: 5px 15px; border-radius: 20px; font-weight: bold; margin-bottom: 20px; display: inline-block;">🔴 ADMISSIONS OPEN 2025</div>
         <h1>Elite Track<br><span>Athletics Academy</span></h1>
         <h3>100m • 200m • 1500m • JUMPS</h3>
-        <a href="#online" class="btn">View Online Plans</a>
+        <a href="#online" class="btn">Start Training</a>
+    </section>
+
+    <section>
+        <div class="center-heading"><h2>Why Choose Us?</h2></div>
+        <div class="features-grid">
+            <div class="feature-item">
+                <span class="feature-icon">⚡</span>
+                <h3>Scientific Training</h3>
+                <p>Advanced workout plans based on biomechanics.</p>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🛡️</span>
+                <h3>Injury Prevention</h3>
+                <p>Focus on recovery and correct technique.</p>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">📈</span>
+                <h3>Proven Results</h3>
+                <p>Helping athletes reach State & National levels.</p>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">💪</span>
+                <h3>Gym & Diet</h3>
+                <p>Complete strength and nutrition guidance.</p>
+            </div>
+        </div>
     </section>
 
     <section id="about">
@@ -280,48 +258,60 @@
                 <h3>Expert Guidance for Elite Performance</h3>
                 <p>Welcome to <strong>Elite Track Athletics Academy</strong>. We use scientific training methods to build speed and power. Whether you are a beginner or a national-level athlete, we have a plan for you.</p>
                 <br>
-                <p><strong>Offline & Online Training Available.</strong></p>
+                <p>We specialize in <strong>Sprints, Middle Distance & Jumps</strong>. Join us to transform your speed.</p>
             </div>
         </div>
     </section>
 
     <section id="online">
         <div class="center-heading">
-            <h2>🌍 Choose Your Online Plan</h2>
-            <p>Train with Coach Bhupendra from anywhere.</p>
+            <h2>🌍 Online Training Plans</h2>
+            <p>Train with Coach Bhupendra from anywhere via Mobile.</p>
         </div>
 
         <div class="plans-container">
-            
             <div class="plan-card premium">
-                <div class="reco-badge">Most Popular</div>
+                <div class="reco-badge">RECOMMENDED</div>
                 <h3>1:1 Personal Coaching</h3>
-                <p class="plan-tagline">For serious athletes seeking fastest improvement.</p>
-                
+                <p style="color: #888; font-style: italic; margin-bottom: 20px;">For serious athletes.</p>
                 <ul class="features-list">
-                    <li><strong>Regular Feedback</strong> on your daily workouts.</li>
-                    <li><strong>Daily Doubt Solving</strong> & Technique Correction via Video Analysis.</li>
-                    <li><strong>Weekly 1:1 Meeting</strong> for progress tracking.</li>
-                    <li>Customized Diet & Recovery Plan.</li>
+                    <li><strong>Daily</strong> Feedback & Doubt Solving.</li>
+                    <li>Technique Video Analysis.</li>
+                    <li>Weekly Progress Meeting.</li>
+                    <li>Custom Diet Plan included.</li>
                 </ul>
-
-                <a href="https://wa.me/918218377572?text=I%20am%20interested%20in%20Personal%20Coaching" class="btn" style="width: 100%; text-align: center; background-color: var(--primary-gold); color: black;">Join Coaching</a>
+                <a href="https://wa.me/918218377572?text=I%20am%20interested%20in%20Personal%20Coaching" class="btn" style="width: 100%; text-align: center;">Join Coaching</a>
             </div>
 
             <div class="plan-card">
-                <h3>Workout Plan Only</h3>
-                <p class="plan-tagline">For independent athletes who need a system.</p>
-                
+                <h3>Workout PDF Only</h3>
+                <p style="color: #888; font-style: italic; margin-bottom: 20px;">For independent athletes.</p>
                 <ul class="features-list">
-                    <li>Complete PDF Workout Schedule.</li>
-                    <li>Self-Paced (You follow it yourself).</li>
-                    <li>Scientific Training Structure.</li>
-                    <li class="limit" style="color: #888;">No feedback or doubt sessions.</li>
+                    <li>Complete Monthly Schedule.</li>
+                    <li>Self-Paced Structure.</li>
+                    <li>Scientific Drills.</li>
+                    <li class="limit" style="color: #777;">No Doubt Sessions.</li>
                 </ul>
-
-                <a href="https://wa.me/918218377572?text=I%20need%20Workout%20Plan%20PDF" class="btn" style="width: 100%; text-align: center;">Get PDF Plan</a>
+                <a href="https://wa.me/918218377572?text=I%20need%20Workout%20Plan%20PDF" class="btn" style="width: 100%; text-align: center; background: transparent; border: 1px solid var(--primary-gold); color: var(--primary-gold);">Get PDF</a>
             </div>
+        </div>
+    </section>
 
+    <section id="reviews">
+        <div class="center-heading"><h2>Athlete Results</h2></div>
+        <div class="reviews-container">
+            <div class="review-card">
+                <p class="review-text">"Coach Bhupendra corrected my start technique just by watching my video. My 100m timing improved from 11.8s to 11.2s in 3 months."</p>
+                <span class="athlete-name">- Rahul, 100m Sprinter</span>
+            </div>
+            <div class="review-card">
+                <p class="review-text">"The PDF workout plan is very detailed. Best for Army bharti preparation. Highly recommended for stamina."</p>
+                <span class="athlete-name">- Amit, 1600m Runner</span>
+            </div>
+            <div class="review-card">
+                <p class="review-text">"Online coaching feels like he is on the ground with me. Daily analysis helps a lot in injury prevention."</p>
+                <span class="athlete-name">- Vikram, Long Jumper</span>
+            </div>
         </div>
     </section>
 
@@ -332,6 +322,7 @@
             <a href="tel:8218377572" style="text-decoration: none;">
                 <span class="phone-number">📞 8218377572</span>
             </a>
+            <a href="https://wa.me/918218377572" class="btn">Chat on WhatsApp</a>
         </div>
     </section>
 
